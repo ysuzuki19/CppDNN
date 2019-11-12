@@ -1,1 +1,1 @@
-# my-DNN
+# CppDNN

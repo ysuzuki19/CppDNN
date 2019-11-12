@@ -7,6 +7,7 @@
 #include <iomanip>
 
 using namespace std;
+const std::string DataPath = "./dataset";
 using NeuralNet = std::vector<std::vector<std::vector<float>>>;
 using DataType = int;
 using DataSet = std::vector<std::vector<std::vector<DataType>>>;
@@ -31,6 +32,24 @@ void network_size_check (NeuralNet& nn) {
   for(size_t i=0; i<nn.size(); ++i) {
     std::cout << nn[i].size() << std::endl;
   }
+}
+
+void dataset_check (std::vector<int>& v) {
+  for(const auto& e : v) {
+    cout << setw(3) << e << " ";
+  }
+  cout << endl;
+  return;
+}
+
+void dataset_check (std::vector<std::vector<int>>& image) {
+  for(const auto& v : image) {
+    for(const auto& e : v) {
+      cout << setw(3) << e << " ";
+    }
+    cout << endl;
+  }
+  return;
 }
 
 void dataset_check (DataSet& dataset) {
@@ -92,12 +111,53 @@ void learn(NeuralNet& nn, DataSet& test) {
   for(int i=0; i<100; ++i) {
     back_propagation(nn, test);
   }
-  return ;
+  return;
 }
 
-void load_data (std::string dataset_path, DataSet& train, DataSet& test) {
-//TODO: develop function for load dataset. load PNG to `train`, `test`
-  return ;
+void load_dataset (std::filesystem::path dataset_path, DataSet& x_train, std::vector<int>& y_train) {
+  fstream file(dataset_path/"y.csv");
+  string line;
+  while (getline(file, line,'\n'))	{
+    istringstream oneline(line);
+    string data;
+    while (getline( oneline, data,',')) {
+      if(data == " ") break;
+      y_train.push_back(stoi(data));
+    }
+  }
+  size_t data_col = 0, data_row = 0;
+  {
+    fstream file(dataset_path/"0.csv");
+    while (getline(file, line,'\n'))	{
+      istringstream oneline(line);
+      string data;
+      data_row = 0;
+      while (getline(oneline, data,',')) {
+        if(data==" ") break;
+        data_row++;
+      }
+      data_col++;
+    }
+    file.close();
+  }
+  x_train.resize(y_train.size(), std::vector<std::vector<int>>(data_col, std::vector<int>(data_row)));
+  for(int i=0; i<y_train.size(); ++i) {
+    fstream file(dataset_path/(to_string(i)+".csv"));
+    size_t n = 0;
+    while (getline(file, line,'\n'))	{
+      istringstream oneline(line);
+      string data;
+      size_t m = 0;
+      while (getline(oneline, data,',')) {
+        if(data==" ") break;
+        x_train[i][n][m] = stoi(data);
+        m++;
+      }
+      n++;
+    }
+    file.close();
+  }
+  return;
 }
 
 int main() {
@@ -106,30 +166,19 @@ int main() {
   NeuralNet nn;
 //  DataSet test;
   init_neuralnet(nn, sizes);
-  vector<vector<float>> v_for_learn;
+//  vector<vector<float>> v_for_learn;
+  vector<int> y_train;
+  DataSet x_train;
+  std::filesystem::path train_path = DataPath;
+  train_path /= "train";
+  load_dataset(DataPath + "/train", x_train, y_train);
+  cout << y_train.size() << endl;
+  cout << x_train.size() << endl;
 //  learn(nn, test);
 //  network_check(nn);
 
-
-  DataSet train(10, std::vector<std::vector<int>>(28, std::vector<int>(28)));
-  for(int i=0; i<10; ++i) {
-    fstream file("dataset/train/" + to_string(i) + ".csv");
-    string line;
-    size_t n=0;
-    while (getline( file, line,'\n'))	{
-      istringstream templine(line);
-      string data;
-      size_t m = 0;
-      while (getline( templine, data,',')) {
-        cout << i << " " << n << " " << m << " " << endl;
-        train[i][n][m] = atoi(data.c_str());
-        m++;
-      }
-      n++;
-    }
-    file.close();
-  }
-  dataset_check(train);
+//  dataset_check(x_train[500]);
+//  cout << x_train.size() << endl;
 
   return 0;
 }
