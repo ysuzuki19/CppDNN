@@ -6,23 +6,19 @@
 #include <random>
 #include <iomanip>
 
-#include "debug.hpp"
-#include "../header/dataset.hpp"
+#include <debug.hpp>
+#include <dataset.hpp>
+#include "neuralnet.hpp"
 
 using namespace std;
-const std::string DataPath = "./dataset";
+const std::vector<std::string> DataPathVec {"..", "dataset"};
 using DataType = int;
 using NeuralNetType = std::vector<std::vector<std::vector<float>>>;
 using ImageType = std::vector<std::vector<DataType>>;
 
-inline float relu (float threshold, float input) {
-  if(input - threshold <= 0) return 0;
-  else return input - threshold;
-}
-
 void view_network_sizes (const NeuralNetType& nn) {
-  for(size_t i=0; i<nn.size(); ++i) {
-    std::cout << nn[i].size() << std::endl;
+  for(const auto& layer : nn) {
+    std::cout << layer.size() << std::endl;
   }
 }
 
@@ -157,25 +153,29 @@ int main() {
   init_neuralnet(nn, sizes);
   vector<int> y_train;
   ImageType x_train;
-  std::filesystem::path train_path = DataPath;
-  train_path /= "train";
-//  cout << x_train[0][0].size() << endl;
+  filesystem::path train_path, test_path;
+  {
+    for(const auto& dir : DataPathVec) train_path /= dir;
+    test_path = train_path / "test";
+    train_path /= "train";
+  }
+  cout << train_path << endl;
+  cout << test_path << endl;
 
-//  cout << x_train[0] << endl;
-//  cout << y_train.size() << endl;
+  dataset train;
+  train.load(train_path);
+//  train(10).draw();
+//  cout << train.ans(10) << endl;
+
+//  dataset test;
+//  test.load(test_path);
+
 //  learn(nn, test);
 //  view_network(nn);
 
 //  vector<int> input(x_train.front().size()*x_train.front().front().size());
 //  vector<vector<int>> input(x_train.front().size(), vector<int>(x_train.front().front().size()));
-//  view(input);
-//  cout << endl;
 //  estimate(nn, input);
-
-
-//  view(x_train[502]);
-//  view(y_train[502]);
-//  cout << x_train.size() << endl;
 
   return 0;
 }
