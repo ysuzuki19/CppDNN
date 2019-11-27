@@ -6,35 +6,42 @@
 #include <random>
 #include <iomanip>
 
+#define debug(var)  do{std::cout << #var << " : "; view(var);}while(0)
+using namespace std;
+using ll = long long;
+template<typename T> void view(const T e){ std::cout << e << std::endl;}
+template<typename T> void view(const std::vector<T>& v){ for(const auto& e : v) std::cout << e << " "; std::cout << std::endl; }
+template<typename T> void view(const std::vector<std::vector<T>>& vv){ for(const auto& v : vv){ view(v); } }
+
 using namespace std;
 const std::string DataPath = "./dataset";
-using NeuralNet = std::vector<std::vector<std::vector<float>>>;
 using DataType = int;
-using DataSet = std::vector<std::vector<std::vector<DataType>>>;
+using NeuralNetType = std::vector<std::vector<std::vector<float>>>;
+using ImageType = std::vector<std::vector<std::vector<DataType>>>;
 
-float relu (float threshold, float input) {
+inline float relu (float threshold, float input) {
   if(input - threshold <= 0) return 0;
   else return input - threshold;
 }
 
-void network_check (NeuralNet& nn) {
-  for(size_t i=0; i<nn.size(); ++i) {
-    for(size_t j=0; j<nn[i].size(); ++j) {
-      for(size_t k=0; k<nn[i][j].size(); ++k) {
-        std::cout << nn[i][j][k] << " ";
+void view_network (const NeuralNetType& nn) {
+  for(const auto& vv : nn) {
+    for(const auto& v : vv) {
+      for(const auto& e : v) {
+        std::cout << e << " ";
       }
       std::cout << std::endl;
     }
   }
 }
 
-void network_size_check (NeuralNet& nn) {
+void view_network_sizes (const NeuralNetType& nn) {
   for(size_t i=0; i<nn.size(); ++i) {
     std::cout << nn[i].size() << std::endl;
   }
 }
 
-void dataset_check (std::vector<int>& v) {
+void view (const std::vector<int>& v) {
   for(const auto& e : v) {
     cout << setw(3) << e << " ";
   }
@@ -42,7 +49,7 @@ void dataset_check (std::vector<int>& v) {
   return;
 }
 
-void dataset_check (std::vector<std::vector<int>>& image) {
+void view (std::vector<std::vector<int>>& image) {
   for(const auto& v : image) {
     for(const auto& e : v) {
       cout << setw(3) << e << " ";
@@ -52,7 +59,7 @@ void dataset_check (std::vector<std::vector<int>>& image) {
   return;
 }
 
-void dataset_check (DataSet& dataset) {
+void view (const ImageType& dataset) {
   for(const auto& vv : dataset) {
     for(const auto& v : vv) {
       for(const auto& e : v) {
@@ -65,7 +72,7 @@ void dataset_check (DataSet& dataset) {
   return;
 }
 
-void init_neuralnet (NeuralNet& nn, vector<size_t> sizes) {
+void init_neuralnet (NeuralNetType& nn, vector<size_t> sizes) {
   size_t nn_num = 0;
   for(size_t layer=0; layer<sizes.size(); ++layer) nn_num += sizes[layer] * sizes[layer+1];
   nn.resize(0);
@@ -77,20 +84,39 @@ void init_neuralnet (NeuralNet& nn, vector<size_t> sizes) {
       nn[layer][pre].resize(sizes[layer+1]);
     }
   }
+  return;
 }
 
-template<typename T> float calculate_accuracy(NeuralNet& nn, DataSet& test) {
-  float accuracy = 0.0;
-  return accuracy;
-}
+//TODO:
+//template<typename T> float calculate_accuracy(NeuralNetType& nn, ImageType& test) {
+//  float accuracy = 0.0;
+//  return accuracy;
+//}
 
-int estimate(NeuralNet& nn, vector<int>& estimate_data) {
-  //TODO: this function is estimate from input on network
+int estimate(const NeuralNetType& nn, const vector<int>& estimate_data) {
   int estimated_class = 0;
+  size_t max_size = 0;
+  for(const auto& layer : nn) max_size = max(max_size, layer.size());
+  std::vector<float> nn_temp;
+  nn_temp.reserve(max_size);
+//  nn_temp_next.reserve(max_size);
+  for(size_t i=0; i<nn.size(); ++i) {
+    nn_temp.resize(nn[i].size());
+    for(int j=0; j<nn_temp.size(); ++j) {
+      cout << nn[i][j].size() << endl;
+      cout << estimate_data.size() << endl;
+      for(int k=0; k<estimate_data.size(); ++k) {
+        nn_temp[j] += nn[i][j][k]*estimate_data[k];
+//        cout << k;
+      }
+//      view(nn_temp);
+      while(1){}
+    }
+  }
   return estimated_class;
 }
 
-void back_propagation(NeuralNet& nn, DataSet& test) {
+void back_propagation(NeuralNetType& nn, ImageType& test) {
   std::default_random_engine generator;
   std::normal_distribution<float> distribution(0.0,0.1);
   // generate normal distribution : `distribution(generator)`
@@ -103,7 +129,7 @@ void back_propagation(NeuralNet& nn, DataSet& test) {
   }
 }
 
-void learn(NeuralNet& nn, DataSet& test) {
+void learn(NeuralNetType& nn, ImageType& test) {
 //  auto learning_process[](){
 //    back_propagation(nn, test);
 //  }
@@ -114,7 +140,7 @@ void learn(NeuralNet& nn, DataSet& test) {
   return;
 }
 
-void load_dataset (std::filesystem::path dataset_path, DataSet& x_train, std::vector<int>& y_train) {
+void load_dataset (std::filesystem::path dataset_path, ImageType& x_train, std::vector<int>& y_train) {
   fstream file(dataset_path/"y.csv");
   string line;
   while (getline(file, line,'\n'))	{
@@ -161,23 +187,29 @@ void load_dataset (std::filesystem::path dataset_path, DataSet& x_train, std::ve
 }
 
 int main() {
-//  vector<size_t> sizes = {256, 128, 64, 10};
-  vector<size_t> sizes = {128, 64, 10};
-  NeuralNet nn;
-//  DataSet test;
+  vector<size_t> sizes = {512, 256, 128, 64, 10};
+  NeuralNetType nn;
   init_neuralnet(nn, sizes);
-//  vector<vector<float>> v_for_learn;
   vector<int> y_train;
-  DataSet x_train;
+  ImageType x_train;
   std::filesystem::path train_path = DataPath;
   train_path /= "train";
-  load_dataset(DataPath + "/train", x_train, y_train);
-  cout << y_train.size() << endl;
-  cout << x_train.size() << endl;
-//  learn(nn, test);
-//  network_check(nn);
+  load_dataset(train_path, x_train, y_train);
+//  cout << x_train[0].size() << endl;
+//  cout << x_train[0][0].size() << endl;
 
-//  dataset_check(x_train[500]);
+//  cout << x_train[0] << endl;
+//  cout << y_train.size() << endl;
+//  learn(nn, test);
+//  view_network(nn);
+
+  vector<int> input(x_train.front().size()*x_train.front().front().size());
+//  vector<vector<int>> input(x_train.front().size(), vector<int>(x_train.front().front().size()));
+//  view(input);
+  cout << endl;
+  estimate(nn, input);
+  view(x_train[502]);
+//  view(y_train[502]);
 //  cout << x_train.size() << endl;
 
   return 0;
