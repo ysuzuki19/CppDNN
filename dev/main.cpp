@@ -4,11 +4,20 @@
 #include <vector>
 #include <string>
 #include <random>
-#include <iomanip>
+
+#ifdef __APPLE__
+  #include <filesystem>
+  namespace fs = std::filesystem;
+#elif __linux__
+  #include <experimental/filesystem>
+  namespace fs = std::experimental::filesystem;
+#else
+  #error "OS not supported."
+#endif
 
 #include <debug.hpp>
 #include <dataset.hpp>
-#include "neuralnet.hpp"
+#include <neuralnet.hpp>
 
 using namespace std;
 const std::vector<std::string> DataPathVec {"..", "dataset"};
@@ -102,7 +111,7 @@ void learn(NeuralNetType& nn, ImageType& test) {
 }
 
 void aoad_dataset (std::filesystem::path dataset_path, ImageType& x_train, std::vector<int>& y_train) {
-  fstream file(dataset_path/"y.csv");
+  fstream file((dataset_path/"y.csv").c_str());
   string line;
   while (getline(file, line,'\n')) {
     istringstream oneline(line);
@@ -114,7 +123,7 @@ void aoad_dataset (std::filesystem::path dataset_path, ImageType& x_train, std::
   }
   size_t data_col = 0, data_row = 0;
   {
-    fstream file(dataset_path/"0.csv");
+    fstream file((dataset_path/"0.csv").c_str());
     while (getline(file, line,'\n')) {
       istringstream oneline(line);
       string data;
@@ -129,7 +138,7 @@ void aoad_dataset (std::filesystem::path dataset_path, ImageType& x_train, std::
   }
 //  x_train.resize(y_train.size(), std::vector<std::vector<int>>(data_col, std::vector<int>(data_row)));
   for(int i=0; i<y_train.size(); ++i) {
-    fstream file(dataset_path/(to_string(i)+".csv"));
+    fstream file((dataset_path/(to_string(i)+".csv")).c_str());
     size_t n = 0;
     while (getline(file, line,'\n')) {
       istringstream oneline(line);
@@ -148,12 +157,16 @@ void aoad_dataset (std::filesystem::path dataset_path, ImageType& x_train, std::
 }
 
 int main() {
-  vector<size_t> sizes = {512, 256, 128, 64, 10};
-  NeuralNetType nn;
-  init_neuralnet(nn, sizes);
+  vector<size_t> layers = {512, 256, 128, 64, 10};
+//  neuralnet nn ( 10 );
+//  neuralnet nn;
+  neuralnet nn(layers);
+  cout << nn.getLayers().size() << endl;
+  view(nn.getLayers());
+//  init_neuralnet(nn, layers);
   vector<int> y_train;
   ImageType x_train;
-  filesystem::path train_path, test_path;
+  std::filesystem::path train_path, test_path;
   {
     for(const auto& dir : DataPathVec) train_path /= dir;
     test_path = train_path / "test";
@@ -162,13 +175,14 @@ int main() {
   cout << train_path << endl;
   cout << test_path << endl;
 
-  dataset train;
-  train.load(train_path);
-//  train(10).draw();
-//  cout << train.ans(10) << endl;
-
+//  dataset train;
+//  train.load(train_path);
 //  dataset test;
 //  test.load(test_path);
+
+
+//  train(10).draw();
+//  cout << train.ans(10) << endl;
 
 //  learn(nn, test);
 //  view_network(nn);

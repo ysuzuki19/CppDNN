@@ -35,7 +35,7 @@ class dataset {
 };
 
 void dataset::load (std::filesystem::path dataset_path) {
-  std::fstream file(dataset_path/"y.csv");
+  std::fstream file((dataset_path/"y.csv").c_str());
   std::string line;
   while (getline(file, line,'\n')) {
     std::istringstream oneline(line);
@@ -48,7 +48,7 @@ void dataset::load (std::filesystem::path dataset_path) {
   size_t img_col = 0, img_row = 0;
   imgs_.resize(ans_.size());
   {
-    std::fstream file(dataset_path/"0.csv");
+    std::fstream file((dataset_path/"0.csv").c_str());
     while (getline(file, line,'\n')) {
       std::istringstream oneline(line);
       std::string data;
