@@ -110,7 +110,7 @@ void learn(NeuralNetType& nn, ImageType& test) {
   return;
 }
 
-void aoad_dataset (std::filesystem::path dataset_path, ImageType& x_train, std::vector<int>& y_train) {
+void load_dataset (fs::path dataset_path, ImageType& x_train, std::vector<int>& y_train) {
   fstream file((dataset_path/"y.csv").c_str());
   string line;
   while (getline(file, line,'\n')) {
@@ -153,7 +153,6 @@ void aoad_dataset (std::filesystem::path dataset_path, ImageType& x_train, std::
     }
     file.close();
   }
-  return;
 }
 
 int main() {
@@ -166,7 +165,7 @@ int main() {
 //  init_neuralnet(nn, layers);
   vector<int> y_train;
   ImageType x_train;
-  std::filesystem::path train_path, test_path;
+  fs::path train_path, test_path;
   {
     for(const auto& dir : DataPathVec) train_path /= dir;
     test_path = train_path / "test";

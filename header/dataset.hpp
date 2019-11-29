@@ -6,6 +6,16 @@
 #include <sstream>
 #include <vector>
 
+#ifdef __APPLE__
+  #include <filesystem>
+  namespace fs = std::filesystem;
+#elif __linux__
+  #include <experimental/filesystem>
+  namespace fs = std::experimental::filesystem;
+#else
+  #error "OS not supported."
+#endif
+
 #include "data_type.hpp"
 
 class dataset {
@@ -31,10 +41,10 @@ class dataset {
     auto rows() const noexcept { return unique_rows_; }
     auto cols() const noexcept { return unique_cols_; }
     inline int ans (size_t idx) { return ans_[idx]; }
-    void load (std::filesystem::path dataset_path) ;
+    void load (fs::path dataset_path) ;
 };
 
-void dataset::load (std::filesystem::path dataset_path) {
+void dataset::load (fs::path dataset_path) {
   std::fstream file((dataset_path/"y.csv").c_str());
   std::string line;
   while (getline(file, line,'\n')) {

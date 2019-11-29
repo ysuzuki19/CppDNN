@@ -1,18 +1,20 @@
 PROG = main.cpp
 TARGET = proj
 HEADER = ../header
+MAKEFILE = makefile
 CXX = g++
 CXX_VERSION = -std=c++17
 CXX_OPTION = -o
 
-ifeq ($(OS), Linux)
-CXX_LIBRARY = -lstdc++fs
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S), Linux)
+LIB_FS = -lstdc++fs
 else
-CXX_LIBRARY =
+LIB_FS =
 endif
 
-${TARGET} : ${PROG} ${HEADER}
-	${CXX} ${CXX_VERSION} ${CXX_OPTION} ${TARGET} -I${HEADER} ${PROG} ${CXX_LIBRARY}
+${TARGET} : ${PROG} ${HEADER} ${MAKEFILE}
+	${CXX} ${CXX_VERSION} ${CXX_OPTION} ${TARGET} -I${HEADER} ${PROG} ${LIB_FS}
 
 run :
 	./proj
