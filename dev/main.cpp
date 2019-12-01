@@ -4,17 +4,10 @@
 #include <vector>
 #include <string>
 #include <random>
+//TODO: remove following line
+using namespace std;
 
-#ifdef __APPLE__
-  #include <filesystem>
-  namespace fs = std::filesystem;
-#elif __linux__
-  #include <experimental/filesystem>
-  namespace fs = std::experimental::filesystem;
-#else
-  #error "OS not supported."
-#endif
-
+#include <filesystem_compatible_os.hpp>
 #include <debug.hpp>
 #include <dataset.hpp>
 #include <neuralnet.hpp>
@@ -72,10 +65,10 @@ int estimate(const NeuralNetType& nn, const vector<vector<DataType>>& estimate_d
 //  nn_temp_next.reserve(max_size);
   for(size_t i=0; i<nn.size(); ++i) {
     nn_temp.resize(nn[i].size());
-    for(int j=0; j<nn_temp.size(); ++j) {
+    for(size_t j=0; j<nn_temp.size(); ++j) {
 //      cout << nn[i][j].size() << endl;
 //      cout << estimate_data.size() << endl;
-      for(int k=0; k<estimate_data.size(); ++k) {
+      for(size_t k=0; k<estimate_data.size(); ++k) {
 //        nn_temp[j] += nn[i][j][k]*estimate_data[k];
 //        cout << k;
       }
@@ -137,7 +130,7 @@ void load_dataset (fs::path dataset_path, ImageType& x_train, std::vector<int>& 
     file.close();
   }
 //  x_train.resize(y_train.size(), std::vector<std::vector<int>>(data_col, std::vector<int>(data_row)));
-  for(int i=0; i<y_train.size(); ++i) {
+  for(size_t i=0; i<y_train.size(); ++i) {
     fstream file((dataset_path/(to_string(i)+".csv")).c_str());
     size_t n = 0;
     while (getline(file, line,'\n')) {

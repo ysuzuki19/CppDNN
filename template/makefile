@@ -4,7 +4,7 @@ HEADER = ../header
 MAKEFILE = makefile
 CXX = g++
 CXX_VERSION = -std=c++17
-CXX_OPTION = -Wall -o
+CXX_OPTION = -o
 
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S), Linux)

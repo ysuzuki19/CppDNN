@@ -14,7 +14,7 @@ class data_type {
     std::vector<int> data_;
   public:
     data_type() = default;
-    data_type(std::size_t rows, std::size_t cols) : data_(rows*cols), rows_{rows} {}
+    data_type(std::size_t rows, std::size_t cols) : rows_{rows} {data_.resize(rows*cols);}
 
     auto& operator()(std::size_t i, std::size_t j) { return data_.at(rows_*j + i); }
     const auto& operator()(std::size_t i, std::size_t j) const { return data_.at(rows_*j + i); }
