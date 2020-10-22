@@ -3,7 +3,7 @@ If compilation error occurs "error: ld returned 1 exit status"
 Please add compilation option "-lstdc++fs" in end-of-compile-command.
 */
 #ifndef FILESYSTEM_COMPATIBLE_OS_HPP_
-  #define FILESYSTEM_COMPATIBLE_OS_HPP_
+#define FILESYSTEM_COMPATIBLE_OS_HPP_
   #ifdef __APPLE__
     #include <filesystem>
     namespace fs = std::filesystem;

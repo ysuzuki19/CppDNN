@@ -8,7 +8,7 @@ CXX_OPTION = -Wall -o
 
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S), Linux)
-LIB_FS = -lstdc++fs
+#LIB_FS = -lstdc++fs # NEED: if you use UBUNTU <= 18.04
 else
 LIB_FS =
 endif

@@ -9,7 +9,7 @@
 #include <filesystem_compatible_os.hpp>
 #include "data_type.hpp"
 
-class dataset {
+class Dataset {
 	private:
 		std::size_t size_ = 0;
 		std::vector<data_type> dataset_;
@@ -22,24 +22,24 @@ class dataset {
 		}
 
 	public:
-		dataset()
+		Dataset()
 			: dataset_(0), each_rows_{0}, each_cols_{0} {}
-		dataset(std::size_t size)
+		Dataset(std::size_t size)
 			: dataset_(size), each_rows_{0}, each_cols_{0} {}
-//		dataset(std::size_t size, std::size_t each_rows, std::size_t each_cols) : dataset_(size, data_type(each_rows, each_cols)), each_rows_{each_rows}, each_cols_{each_cols} {}
+//		Dataset(std::size_t size, std::size_t each_rows, std::size_t each_cols) : dataset_(size, data_type(each_rows, each_cols)), each_rows_{each_rows}, each_cols_{each_cols} {}
 
 		std::size_t size() const noexcept { return dataset_.size(); }
 		data_type& operator()(std::size_t i) { return dataset_.at(i); }
 		const data_type& operator()(std::size_t i) const { return dataset_.at(i); }
 		std::size_t rows() const noexcept { return each_rows_; }
 		std::size_t cols() const noexcept { return each_cols_; }
-		inline std::vector<int> ans () { return ans_; }
-		inline int ans (size_t idx) { return ans_[idx]; }
+		inline std::vector<int> ans () const { return ans_; }
+		inline int ans (size_t idx) const { return ans_[idx]; }
 		void load (fs::path dataset_path);
-		data_type const& get(std::size_t idx){ return dataset_[idx]; }
+		data_type const& get(std::size_t idx) const { return dataset_[idx]; }
 };
 
-void dataset::load (fs::path dataset_path) {
+void Dataset::load (fs::path dataset_path) {
 	std::fstream file((dataset_path/"y.csv").c_str());
 	std::string line;
 	while (getline(file, line,'\n')) {

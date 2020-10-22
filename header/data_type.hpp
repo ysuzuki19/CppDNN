@@ -10,8 +10,8 @@
 
 class data_type {
 	private:
-		std::size_t rows_ = 0;
-		std::size_t cols_ = 0;
+		std::size_t rows_ = 1;
+		std::size_t cols_ = 1;
 		std::vector<int> data_;
 	public:
 		data_type () = default;
@@ -23,6 +23,8 @@ class data_type {
 		std::size_t size () const noexcept { return rows_*cols_; }
 		std::size_t rows () const noexcept { return rows_; }
 		std::size_t cols () const noexcept { return cols_; }
+
+		int at (std::size_t idx) const noexcept { return data_[idx]; }
 
 		inline void resize (std::size_t rows, std::size_t cols) {
 			data_.resize (rows*cols);
