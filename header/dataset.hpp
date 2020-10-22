@@ -28,15 +28,15 @@ class dataset {
 			: dataset_(size), each_rows_{0}, each_cols_{0} {}
 //		dataset(std::size_t size, std::size_t each_rows, std::size_t each_cols) : dataset_(size, data_type(each_rows, each_cols)), each_rows_{each_rows}, each_cols_{each_cols} {}
 
-		auto size() const noexcept { return dataset_.size(); }
-		auto& operator()(std::size_t i) { return dataset_.at(i); }
-		const auto& operator()(std::size_t i) const { return dataset_.at(i); }
-		auto rows() const noexcept { return each_rows_; }
-		auto cols() const noexcept { return each_cols_; }
-		inline auto ans () { return ans_; }
+		std::size_t size() const noexcept { return dataset_.size(); }
+		data_type& operator()(std::size_t i) { return dataset_.at(i); }
+		const data_type& operator()(std::size_t i) const { return dataset_.at(i); }
+		std::size_t rows() const noexcept { return each_rows_; }
+		std::size_t cols() const noexcept { return each_cols_; }
+		inline std::vector<int> ans () { return ans_; }
 		inline int ans (size_t idx) { return ans_[idx]; }
 		void load (fs::path dataset_path);
-		auto get(std::size_t idx){ return dataset_[idx]; }
+		data_type const& get(std::size_t idx){ return dataset_[idx]; }
 };
 
 void dataset::load (fs::path dataset_path) {

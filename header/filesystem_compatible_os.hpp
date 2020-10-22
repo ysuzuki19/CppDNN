@@ -8,8 +8,10 @@ Please add compilation option "-lstdc++fs" in end-of-compile-command.
     #include <filesystem>
     namespace fs = std::filesystem;
   #elif __linux__
-    #include <experimental/filesystem>
-    namespace fs = std::experimental::filesystem;
+    //#include <experimental/filesystem>
+    #include <filesystem>
+    namespace fs = std::filesystem;
+    //namespace fs = std::experimental::filesystem;
   #else
     #error "OS not supported."
   #endif
