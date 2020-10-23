@@ -241,19 +241,19 @@ std::vector<float> NeuralNet::predict (data_type const& input_data) const {
 	std::vector<float> old_neurons;
 	std::vector<float> new_neurons;
 
-	new_neurons.resize (connects_[0][0].size (), initial_neuron_threshold);
+	new_neurons.resize (connects_[0][0].size (), 0.0);
 	for (size_t j=0; j<connects_[0].size (); ++j) {
 		for (size_t k=0; k<connects_[0][j].size (); ++k) {
 			new_neurons[k] += (input_data.at (j) * connects_[0][j][k]);
 		}
 	}
 	for (size_t k=0; k<new_neurons.size (); ++k) {
-		//new_neurons[k] = Activation::sigmoid (neurons_[0][k], new_neurons[k]);
+		new_neurons[k] = Activation::sigmoid (neurons_[0][k], new_neurons[k]);
 	}
 
 	for (std::size_t i=1; i<connects_.size ()-1; ++i) {
 		std::swap (old_neurons, new_neurons);
-		new_neurons.resize (connects_[i][0].size (), initial_neuron_threshold);
+		new_neurons.resize (connects_[i][0].size (), 0.0);
 
 		for (size_t j=0; j<connects_[i].size (); ++j) {
 			for (size_t k=0; k<connects_[i][j].size (); ++k) {
@@ -262,7 +262,7 @@ std::vector<float> NeuralNet::predict (data_type const& input_data) const {
 		}
 
 		for (size_t k=0; k<connects_[i][0].size (); ++k) {
-			//new_neurons[k] = Activation::sigmoid (neurons_[i][k], new_neurons[k]);
+			new_neurons[k] = Activation::sigmoid (neurons_[i][k], new_neurons[k]);
 		}
 	}
 
@@ -272,9 +272,8 @@ std::vector<float> NeuralNet::predict (data_type const& input_data) const {
 			predictions[k] += (new_neurons.at (j) * connects_.back ()[j][k]);
 		}
 	}
-	Debug::view (predictions);
 	for (size_t k=0; k<connects_.back ()[0].size (); ++k) {
-		//predictions[k] = Activation::sigmoid (neurons_.back ()[k], predictions[k]);
+		predictions[k] = Activation::sigmoid (neurons_.back ()[k], predictions[k]);
 	}
 
 	Debug::view (predictions);
