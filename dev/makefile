@@ -4,7 +4,7 @@ HEADER = ../header
 MAKEFILE = makefile
 CXX = g++
 CXX_VERSION = -std=c++17
-CXX_OPTION = -Wall -o
+CXX_OPTION = -Wall -O2
 
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S), Linux)
@@ -14,7 +14,7 @@ LIB_FS =
 endif
 
 ${TARGET} : ${PROG} ${HEADER} ${MAKEFILE}
-	${CXX} ${CXX_VERSION} ${CXX_OPTION} ${TARGET} -I${HEADER} ${PROG} ${LIB_FS}
+	${CXX} ${CXX_VERSION} ${CXX_OPTION} -o ${TARGET} -I${HEADER} ${PROG} ${LIB_FS}
 
 run :
 	./proj

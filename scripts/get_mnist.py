@@ -17,7 +17,7 @@ except FileExistsError:
 
 (x_train, y_train), (x_test, y_test) = mnist.load_data()
 
-datasize_ratio = 100000
+datasize_ratio = 1000000
 datasize_train = x_train.size // datasize_ratio
 datasize_test = x_test.size // datasize_ratio
 

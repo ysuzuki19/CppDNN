@@ -21,9 +21,9 @@ int main () {
 	//vector<size_t> layers = {512, 256, 128, 64, 10};
 	//vector<size_t> layers = {128, 64, 10};
 	//vector<size_t> layers = {20, 10};
-	vector<size_t> layers = {20};
-	NeuralNet nn (layers, false);
-	//NeuralNet nn (layers);
+	vector<size_t> layers = {64, 16};
+	//NeuralNet nn (layers, false);
+	NeuralNet nn (layers);
 
 	fs::path train_path, test_path;
 	train_path = DatasetDir / "train";
@@ -33,12 +33,12 @@ int main () {
 	cout << "initial accuracy : " << nn.accuracy () << endl;
 	//nn.load (train_path, test_path, true);
 
-	//debug::view ("layer size: ", nn.getLayers ().size ());
-	//debug::view ("neuron size: ", nn.getNeurons ().size ());
-	//debug::view ("connect size: ", nn.getConnect ().size ());
-	//debug::view ("layers : ", nn.getLayers ());
-	//debug::view ("neurons: ", nn.getNeurons ());
-	//debug::view ("connect: ", nn.getConnect ());
+	//Debug::view ("layer size: ", nn.getLayers ().size ());
+	//Debug::view ("neuron size: ", nn.getNeurons ().size ());
+	//Debug::view ("connect size: ", nn.getConnect ().size ());
+	//Debug::view ("layers : ", nn.getLayers ());
+	//Debug::view ("neurons: ", nn.getNeurons ());
+	//Debug::view ("connect: ", nn.getConnect ());
 	//for (const auto& cons : nn.getConnect ()) {
 		//cout << cons.size () << endl;
 	////}
@@ -46,15 +46,15 @@ int main () {
 
 	nn.fit ();
 
+	//nn.view_connect ();
 	cout << "accuracy : " << nn.accuracy () << endl;
 	//nn.calcAcc ();
-	//debug::view ("accuracy: ", nn.getAcc ());
-	//debug::view ("accuracy: ", nn.acc ());
+	//Debug::view ("accuracy: ", nn.getAcc ());
+	//Debug::view ("accuracy: ", nn.acc ());
 	//cout << nn.acc () << endl;
 	//auto at = nn.getTrain (0);
 	//nn.predict ();
 	//nn.view_train_data (0);
-	nn.view_connect ();
 	//nn.view_neurons ();
 	return 0;
 }

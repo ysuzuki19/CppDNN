@@ -9,6 +9,7 @@
 
 #include <dataset.hpp>
 #include <filesystem>
+#include "../../YSL/include/CppProgressBar.hpp"
 namespace fs = std::filesystem;
 
 class NormalRandom {
@@ -18,6 +19,7 @@ class NormalRandom {
 	public:
 		//NormalRandom () : distribution (0.0, 0.1) {}
 		NormalRandom () : distribution (0.0, 1.0) {}
+		//NormalRandom () : distribution (0.0, 10.0) {}
 		NormalRandom  (float mean, float dist) : distribution (mean, dist) {}
 
 		float generate () { return distribution (generator); }
@@ -33,20 +35,34 @@ namespace Support {
 	}
 
 	int argmax (std::vector<float> const& src) {
+		//cout << "START ARGMAX" << endl;
+		//Debug::view (src);
+		//cout << "SIZE : " << src.size () << endl;
 		int id = 0;
 		float maximum = src[0];
 		for (size_t i=1; i<src.size (); ++i) {
+			//cout << "CHECK : " << src[i] << endl;
 			if (maximum < src[i]) {
 				id = i;
 				maximum = src[i];
+				//cout << id << " : " << maximum << endl;
 			}
+			//cout << "MAX : " << maximum << " at " << id << endl;
 		}
+		//cout << "ID : " << id << endl;
 		return id;
 	}
+};
 
+namespace Activation {
 	inline float relu (float threshold, float input) {
 		if (input - threshold <= 0) return 0;
 		return input - threshold;
+	}
+
+	inline float sigmoid (float threshold, float input) {
+		//return 1.0 / (1.0 + std::exp (input));
+		return 1.0 / (1.0 + std::exp (-input + threshold));
 	}
 };
 
@@ -54,7 +70,10 @@ class NeuralNet {
 	private:
 		std::vector<std::size_t> layers_;
 
+		float initial_neuron_threshold = 0.0;
 		std::vector<std::vector<float>> neurons_; // each threashold
+		//float initial_connect_weight = 1.0;
+		float initial_connect_weight = 1.0;
 		std::vector<std::vector<std::vector<float>>> connects_; // relations of neurons
 
 		Dataset train_data_;
@@ -114,27 +133,25 @@ class NeuralNet {
 void NeuralNet::initialization () {
 	neurons_.resize (layers_.size ());
 	for (std::size_t layerIdx=0; layerIdx<layers_.size (); ++layerIdx) {
-		neurons_[layerIdx].resize (layers_[layerIdx], 1.0);
+		neurons_[layerIdx].resize (layers_[layerIdx], initial_neuron_threshold);
 	}
 	log_print ("neurons was resized");
 
-	float initial_threashold = 0.0;
-
 	connects_.resize (layers_.size () + 1);
-	connects_[0].resize (input_size_, std::vector<float>(layers_[0], initial_threashold));
+	connects_[0].resize (input_size_, std::vector<float>(layers_[0], initial_connect_weight));
 	for (std::size_t i=1; i<layers_.size (); ++i) {
-		connects_[i].resize (layers_[i-1], std::vector<float>(layers_[i], initial_threashold));
+		connects_[i].resize (layers_[i-1], std::vector<float>(layers_[i], initial_connect_weight));
 	}
-	connects_[layers_.size ()].resize (layers_.back (), std::vector<float>(output_size_, initial_threashold));
+	connects_[layers_.size ()].resize (layers_.back (), std::vector<float>(output_size_, initial_connect_weight));
 	log_print ("layers was resized");
 }
 
 // Data Loader
 void NeuralNet::load (std::filesystem::path train_path, std::filesystem::path test_path, bool verbose=false) {
-	if (verbose) std::clog << "train data loaaing ..." << std::endl;
+	log_print ("train data loaaing ...");
 	train_data_.load (train_path);
 
-	if (verbose) std::clog << "test data loaaing ..." << std::endl;
+	log_print ("test data loaaing ...");
 	test_data_.load (test_path);
 
 	input_size_ = train_data_.get (0).size ();
@@ -143,9 +160,11 @@ void NeuralNet::load (std::filesystem::path train_path, std::filesystem::path te
 			Support::max (test_data_.ans ())
 	) + 1; // ADD id=0
 
-	if (verbose) std::cout << "CLASSES : " << output_size_ << std::endl;
+	log_print ("CLASSES : " + std::to_string (output_size_));
 
 	this->initialization ();
+
+	accuracy_ = this->calculate_accuracy (train_data_);
 }
 
 // Data Viewers
@@ -184,85 +203,83 @@ void NeuralNet::view_test_data (std::size_t idx) {
 }
 void NeuralNet::back_propagation () {
 	for (std::size_t i=connects_.size ()-1; i<connects_.size (); --i) {
-		for (std::size_t j=connects_[i].size ()-1; j<connects_[i].size (); --j) {
-			for (std::size_t k=connects_[i][j].size ()-1; k<connects_[i][j].size (); --k) {
+		for (std::size_t j=0; j<connects_[i].size (); ++j) {
+			for (std::size_t k=0; k<connects_[i][j].size (); ++k) {
+				//cout << "(" << i << "," << j << "," << k << ")";
 				float old_connect = connects_[i][j][k];
+				//cout << nrand_.generate () << " ";
 				connects_[i][j][k] += nrand_.generate ();
 				float new_acc = this->calculate_accuracy (train_data_);
-				//cout << new_acc << endl;
-				if (accuracy_ > new_acc) {
-					//cout << "DONT UPDATE" << endl;
-					connects_[i][j][k] = old_connect;
-				} else {
-					//cout << "UPDATE" << endl;
+				if (accuracy_ < new_acc) {
 					accuracy_ = new_acc;
+					//cout << "UPDATE : " << new_acc << endl;
+				} else {
+					connects_[i][j][k] = old_connect;
+					//cout << "BACK" << endl;
 				}
 			}
 		}
 	}
 }
 void NeuralNet::fit () {
-//TODO: use following part
-//	auto fitting_process[] () {
-//		this->back_propagation (nn, test);
-//	}
-//	for_progress (batch_size_, fitting_process);
-	batch_size_ = 1;//TODO: remove this line
-	for (int i=0; i<batch_size_; ++i) {
-		this->back_propagation ();
-	}
 	log_print ("train size : " + std::to_string (train_data_.size ()));
 	log_print ("test size : " + std::to_string (test_data_.size ()));
+
+	//batch_size_ = 10;//TODO: remove this line
+	batch_size_ = 50;//TODO: remove this line
+	size_t cnt = 0;
+	auto fitting_process = [&] (std::string& str) {
+		this->back_propagation ();
+		str = to_string (cnt) + " : " + to_string (accuracy_);
+		cnt ++;
+	};
+
+	for_progress (batch_size_, fitting_process);
 }
 
 std::vector<float> NeuralNet::predict (data_type const& input_data) const {
-	std::vector<float> odd_neurons;
-	std::vector<float> even_neurons;
+	std::vector<float> old_neurons;
+	std::vector<float> new_neurons;
 
-	// process input layer
-	odd_neurons.resize (connects_[0][0].size (), 0.0);
+	new_neurons.resize (connects_[0][0].size (), initial_neuron_threshold);
 	for (size_t j=0; j<connects_[0].size (); ++j) {
 		for (size_t k=0; k<connects_[0][j].size (); ++k) {
-			odd_neurons[k] += Support::relu (neurons_[0][k], input_data.at (j) * connects_[0][j][k]);
+			new_neurons[k] += (input_data.at (j) * connects_[0][j][k]);
 		}
 	}
-
-	bool is_odd = false;
+	for (size_t k=0; k<new_neurons.size (); ++k) {
+		//new_neurons[k] = Activation::sigmoid (neurons_[0][k], new_neurons[k]);
+	}
 
 	for (std::size_t i=1; i<connects_.size ()-1; ++i) {
-		if (is_odd) {
-			odd_neurons.resize (connects_[i+1][0].size (), 0.0);
-		} else {
-			even_neurons.resize (connects_[i+1][0].size (), 0.0);
-		}
+		std::swap (old_neurons, new_neurons);
+		new_neurons.resize (connects_[i][0].size (), initial_neuron_threshold);
+
 		for (size_t j=0; j<connects_[i].size (); ++j) {
 			for (size_t k=0; k<connects_[i][j].size (); ++k) {
-				if (is_odd) {
-					odd_neurons[k] += Support::relu (neurons_[i][k], even_neurons[j] * connects_[i][j][k]);
-				} else {
-					even_neurons[k] += (odd_neurons[j] * connects_[i][j][k]);
-				}
+				new_neurons[k] += (old_neurons[j] * connects_[i][j][k]);
 			}
 		}
-		is_odd = (!is_odd);
+
+		for (size_t k=0; k<connects_[i][0].size (); ++k) {
+			//new_neurons[k] = Activation::sigmoid (neurons_[i][k], new_neurons[k]);
+		}
 	}
 
-	// process output layer
 	std::vector<float> predictions (output_size_, 0.0);
-	//cout << endl;
-	//cout << "OUTPUT SIZE : " << output_size_ << endl;
-	//cout << "CONNECTS SIZE : " << connects_.back ()[0].size () << endl;
 	for (size_t j=0; j<connects_.back ().size (); ++j) {
 		for (size_t k=0; k<connects_.back ()[j].size (); ++k) {
-			if (is_odd) {
-				predictions[k] += Support::relu (neurons_.back ()[k], even_neurons.at (j) * connects_.back ()[j][k]);
-			} else {
-				predictions[k] += Support::relu (neurons_.back ()[k], odd_neurons.at (j) * connects_.back ()[j][k]);
-			}
+			predictions[k] += (new_neurons.at (j) * connects_.back ()[j][k]);
 		}
 	}
+	Debug::view (predictions);
+	for (size_t k=0; k<connects_.back ()[0].size (); ++k) {
+		//predictions[k] = Activation::sigmoid (neurons_.back ()[k], predictions[k]);
+	}
 
-	//debug::view (predictions);
+	Debug::view (predictions);
+	cout << "ANS : " << Support::argmax (predictions) << endl;
+	cout << endl;
 
 	return predictions;
 }
@@ -275,7 +292,9 @@ int NeuralNet::predict_id (data_type const& input_data) const {
 float NeuralNet::calculate_accuracy (Dataset const& dataset) const {
 	std::size_t ok = 0;
 	for (std::size_t i=0; i<dataset.size (); ++i) {
-		if (this->predict_id (dataset.get (i)) == dataset.ans (i)) {
+		int pred_id = this->predict_id (dataset.get (i));
+		int ans_id = dataset.ans (i);
+		if (pred_id == ans_id) {
 			ok++;
 		}
 	}

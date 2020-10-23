@@ -1,8 +1,8 @@
 #ifndef DEBUG_HPP
 #define DEBUG_HPP
 
-namespace debug {
-//#define debug(var)  do{std::cout << #var << " : "; view(var);}while(0)
+namespace Debug {
+//#define Debug(var)  do{std::cout << #var << " : "; view(var);}while(0)
 
 	template<typename T> void view(std::string msg, const T e) {
 		std::cout << msg << e << std::endl;
