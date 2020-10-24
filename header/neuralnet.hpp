@@ -55,14 +55,17 @@ namespace Support {
 };
 
 namespace Activation {
-	inline float relu (float threshold, float input) {
-		if (input - threshold <= 0) return 0;
-		return input - threshold;
+	inline float unit (float threshold, float input) {
+		if (threshold <= input) return 1;
+		return 0;
 	}
-
 	inline float sigmoid (float threshold, float input) {
 		//return 1.0 / (1.0 + std::exp (input));
 		return 1.0 / (1.0 + std::exp (-input + threshold));
+	}
+	inline float relu (float threshold, float input) {
+		if (threshold <= input) return input - threshold;
+		return 0;
 	}
 };
 
