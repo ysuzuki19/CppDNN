@@ -21,7 +21,7 @@ int main () {
 	//vector<size_t> layers = {512, 256, 128, 64, 10};
 	//vector<size_t> layers = {128, 64, 10};
 	//vector<size_t> layers = {20, 10};
-	vector<size_t> layers = {64, 16};
+	vector<size_t> layers = {16};
 	//NeuralNet nn (layers, false);
 	NeuralNet nn (layers);
 

@@ -33,7 +33,6 @@ namespace Support {
 		}
 		return maximum;
 	}
-
 	int argmax (std::vector<float> const& src) {
 		//cout << "START ARGMAX" << endl;
 		//Debug::view (src);
@@ -100,7 +99,8 @@ class NeuralNet {
 
 		void initialization ();
 
-		void back_propagation ();
+		//void back_propagation ();
+		void back_propagation (size_t cnt);
 
 		float calculate_accuracy (Dataset const& ds) const;
 
@@ -158,6 +158,7 @@ void NeuralNet::load (std::filesystem::path train_path, std::filesystem::path te
 	test_data_.load (test_path);
 
 	input_size_ = train_data_.get (0).size ();
+	cout << "input size: " << input_size_ << endl;
 	output_size_ = std::max (
 			Support::max (train_data_.ans ()),
 			Support::max (test_data_.ans ())
@@ -204,7 +205,8 @@ void NeuralNet::view_train_data (std::size_t idx) {
 void NeuralNet::view_test_data (std::size_t idx) {
 	train_data_.get (idx).draw ();
 }
-void NeuralNet::back_propagation () {
+void NeuralNet::back_propagation (size_t cnt) {
+	//cout << cnt << endl;
 	for (std::size_t i=connects_.size ()-1; i<connects_.size (); --i) {
 		for (std::size_t j=0; j<connects_[i].size (); ++j) {
 			for (std::size_t k=0; k<connects_[i][j].size (); ++k) {
@@ -231,9 +233,10 @@ void NeuralNet::fit () {
 	//batch_size_ = 10;//TODO: remove this line
 	batch_size_ = 50;//TODO: remove this line
 	size_t cnt = 0;
-	auto fitting_process = [&] (std::string& str) {
-		this->back_propagation ();
-		str = to_string (cnt) + " : " + to_string (accuracy_);
+	auto fitting_process = [&] (std::string& outputting) {
+		//this->back_propagation ();
+		this->back_propagation (cnt);
+		//outputting = to_string (cnt) + " : " + to_string (accuracy_);
 		cnt ++;
 	};
 
@@ -251,7 +254,7 @@ std::vector<float> NeuralNet::predict (data_type const& input_data) const {
 		}
 	}
 	for (size_t k=0; k<new_neurons.size (); ++k) {
-		new_neurons[k] = Activation::sigmoid (neurons_[0][k], new_neurons[k]);
+		new_neurons[k] = Activation::unit (neurons_[0][k], new_neurons[k]);
 	}
 
 	for (std::size_t i=1; i<connects_.size ()-1; ++i) {
@@ -265,7 +268,7 @@ std::vector<float> NeuralNet::predict (data_type const& input_data) const {
 		}
 
 		for (size_t k=0; k<connects_[i][0].size (); ++k) {
-			new_neurons[k] = Activation::sigmoid (neurons_[i][k], new_neurons[k]);
+			new_neurons[k] = Activation::unit (neurons_[i][k], new_neurons[k]);
 		}
 	}
 
@@ -275,13 +278,14 @@ std::vector<float> NeuralNet::predict (data_type const& input_data) const {
 			predictions[k] += (new_neurons.at (j) * connects_.back ()[j][k]);
 		}
 	}
+	//Debug::view (predictions);
 	for (size_t k=0; k<connects_.back ()[0].size (); ++k) {
-		predictions[k] = Activation::sigmoid (neurons_.back ()[k], predictions[k]);
+		predictions[k] = Activation::unit (neurons_.back ()[k], predictions[k]);
 	}
 
-	Debug::view (predictions);
-	cout << "ANS : " << Support::argmax (predictions) << endl;
-	cout << endl;
+	//Debug::view (predictions);
+	//cout << "ANS : " << Support::argmax (predictions) << endl;
+	//cout << endl;
 
 	return predictions;
 }
