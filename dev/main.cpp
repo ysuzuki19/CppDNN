@@ -20,17 +20,18 @@ fs::path DatasetDir ("../dataset");
 int main () {
 	//vector<size_t> layers = {512, 256, 128, 64, 10};
 	//vector<size_t> layers = {128, 64, 10};
-	//vector<size_t> layers = {20, 10};
-	vector<size_t> layers = {16};
-	//NeuralNet nn (layers, false);
-	NeuralNet nn (layers);
+	vector<size_t> layers = {20, 10};
+	//vector<size_t> layers = {16};
+	//vector<size_t> layers = {};
+	NeuralNet nn (layers, false);
+	//NeuralNet nn (layers);
 
 	fs::path train_path, test_path;
 	train_path = DatasetDir / "train";
 	test_path = DatasetDir / "test";
 
 	nn.load (train_path, test_path);
-	cout << "initial accuracy : " << nn.accuracy () << endl;
+	cout << "INITIAL ACCURACY : " << nn.accuracy () << endl;
 	//nn.load (train_path, test_path, true);
 
 	//Debug::view ("layer size: ", nn.getLayers ().size ());
@@ -47,7 +48,7 @@ int main () {
 	nn.fit ();
 
 	//nn.view_connect ();
-	cout << "accuracy : " << nn.accuracy () << endl;
+	cout << "FITTED ACCURACY : " << nn.accuracy () << endl;
 	//nn.calcAcc ();
 	//Debug::view ("accuracy: ", nn.getAcc ());
 	//Debug::view ("accuracy: ", nn.acc ());

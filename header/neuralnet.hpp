@@ -18,8 +18,8 @@ class NormalRandom {
 		std::normal_distribution<float> distribution;
 	public:
 		//NormalRandom () : distribution (0.0, 0.1) {}
-		NormalRandom () : distribution (0.0, 1.0) {}
-		//NormalRandom () : distribution (0.0, 10.0) {}
+		//NormalRandom () : distribution (0.0, 1.0) {}
+		NormalRandom () : distribution (0.0, 10.0) {}
 		NormalRandom  (float mean, float dist) : distribution (mean, dist) {}
 
 		float generate () { return distribution (generator); }
@@ -83,8 +83,6 @@ class NeuralNet {
 
 		std::size_t input_size_ = 0;
 		std::size_t output_size_ = 0;
-		int classes_ = 0;
-
 		int batch_size_ = 100;
 
 		float accuracy_ = 0.0;
@@ -98,10 +96,8 @@ class NeuralNet {
 		NormalRandom nrand_;
 
 		void initialization ();
-
-		//void back_propagation ();
-		void back_propagation (size_t cnt);
-
+		void back_propagation ();
+		void simple_optim ();
 		float calculate_accuracy (Dataset const& ds) const;
 
 	public:
@@ -109,13 +105,13 @@ class NeuralNet {
 		NeuralNet (std::vector<std::size_t> layers, bool logging=true) : layers_{layers}, logging_{logging} {}
 
 		void load (fs::path train_path, fs::path test_path, bool verbose);
-
 		void fit ();
 
 		std::vector<float> predict (data_type const& input) const;
-
 		int predict_id (data_type const& input) const;
+		float accuracy () const;
 
+		// Accessor
 		inline void setLayers (std::vector<std::size_t> layers) { layers_ = layers; this->initialization(); }
 		inline std::vector<std::size_t> getLayers () const { return layers_; }
 		inline std::vector<std::vector<float>> getNeurons () const { return neurons_; }
@@ -124,8 +120,7 @@ class NeuralNet {
 		inline std::size_t trainSize () const noexcept { return train_data_.size (); }
 		inline std::size_t testSize () const noexcept { return test_data_.size (); }
 
-		float accuracy () const;
-
+		// Viewer
 		void view_layers ();
 		void view_neurons ();
 		void view_connect ();
@@ -158,7 +153,7 @@ void NeuralNet::load (std::filesystem::path train_path, std::filesystem::path te
 	test_data_.load (test_path);
 
 	input_size_ = train_data_.get (0).size ();
-	cout << "input size: " << input_size_ << endl;
+	log_print ("input size: " + std::to_string (input_size_));
 	output_size_ = std::max (
 			Support::max (train_data_.ans ()),
 			Support::max (test_data_.ans ())
@@ -205,25 +200,38 @@ void NeuralNet::view_train_data (std::size_t idx) {
 void NeuralNet::view_test_data (std::size_t idx) {
 	train_data_.get (idx).draw ();
 }
-void NeuralNet::back_propagation (size_t cnt) {
-	//cout << cnt << endl;
+void NeuralNet::back_propagation () {
 	for (std::size_t i=connects_.size ()-1; i<connects_.size (); --i) {
 		for (std::size_t j=0; j<connects_[i].size (); ++j) {
 			for (std::size_t k=0; k<connects_[i][j].size (); ++k) {
-				//cout << "(" << i << "," << j << "," << k << ")";
 				float old_connect = connects_[i][j][k];
-				//cout << nrand_.generate () << " ";
 				connects_[i][j][k] += nrand_.generate ();
 				float new_acc = this->calculate_accuracy (train_data_);
 				if (accuracy_ < new_acc) {
 					accuracy_ = new_acc;
-					//cout << "UPDATE : " << new_acc << endl;
 				} else {
 					connects_[i][j][k] = old_connect;
-					//cout << "BACK" << endl;
 				}
 			}
 		}
+	}
+}
+void NeuralNet::simple_optim () {
+	auto old_connects = connects_;
+
+	for (auto& layer_connects : connects_) {
+		for (auto& connects : layer_connects) {
+			for (auto& connect : connects) {
+				connect += nrand_.generate ();
+			}
+		}
+	}
+
+	float new_acc = this->calculate_accuracy (train_data_);
+	if (accuracy_ < new_acc) {
+		accuracy_ = new_acc;
+	} else {
+		connects_ = old_connects;
 	}
 }
 void NeuralNet::fit () {
@@ -231,11 +239,11 @@ void NeuralNet::fit () {
 	log_print ("test size : " + std::to_string (test_data_.size ()));
 
 	//batch_size_ = 10;//TODO: remove this line
-	batch_size_ = 50;//TODO: remove this line
+	//batch_size_ = 50;//TODO: remove this line
 	size_t cnt = 0;
 	auto fitting_process = [&] (std::string& outputting) {
-		//this->back_propagation ();
-		this->back_propagation (cnt);
+		this->back_propagation ();
+		//this->simple_optim ();
 		//outputting = to_string (cnt) + " : " + to_string (accuracy_);
 		cnt ++;
 	};
